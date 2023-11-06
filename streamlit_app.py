@@ -75,6 +75,16 @@ desired_unidades.insert(0, "Todos")
 # Create a filter for selecting "UNIDADE:"
 unidade = st.sidebar.selectbox("Unidade:", desired_unidades)
 
+# Add a "Year-Semester" filter
+unique_year_semester = sorted(df["Year-Quarter"].unique())  # Assuming Year-Quarter represents semesters
+unique_year_semester.insert(0, "Todos")
+semester = st.sidebar.selectbox("Semestre", unique_year_semester)
+
+# Add a "Year" filter
+unique_years = sorted(df["Year"].unique())
+unique_years.insert(0, "Todos")
+selected_year = st.sidebar.selectbox("Ano", unique_years)
+
 # Check if "All" is selected for the "Year-Month" filter
 if month == "Todos":
     month_filtered = df
@@ -83,17 +93,31 @@ else:
 
 # Check if "All" is selected for the "Year-Quarter" filter
 if quarter == "Todos":
-    filtered_df = month_filtered
+    quarter_filtered = month_filtered
 else:
-    filtered_df = month_filtered[month_filtered["Year-Quarter"] == quarter]
+    quarter_filtered = month_filtered[month_filtered["Year-Quarter"] == quarter]
 
 # Check if "Todos" is selected for the "UNIDADE:" filter
 if unidade != "Todos":
-    filtered_df = filtered_df[filtered_df["UNIDADE:"] == unidade]
+    unidade_filtered = quarter_filtered[quarter_filtered["UNIDADE:"] == unidade]
+else:
+    unidade_filtered = quarter_filtered
+
+# Check if "All" is selected for the "Year-Semester" filter
+if semester == "Todos":
+    semester_filtered = unidade_filtered
+else:
+    semester_filtered = unidade_filtered[unidade_filtered["Year-Quarter"] == semester]
+
+# Check if "Todos" is selected for the "Year" filter
+if selected_year != "Todos":
+    year_filtered = semester_filtered[semester_filtered["Year"] == int(selected_year)]
+else:
+    year_filtered = semester_filtered
 
 # Display the filtered DataFrame
 st.write("Dados Selecionados:")
-st.dataframe(filtered_df)
+st.dataframe(year_filtered)
 
 
 col1, col2 = st.columns(2)
