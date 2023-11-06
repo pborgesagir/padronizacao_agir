@@ -258,10 +258,11 @@ fig_residual = px.line(df_residual_values, x="Year-Month", y="Valor Residual", t
 # Customize the line chart if needed
 fig_residual.update_traces(mode="lines+markers")
 
-fig_residual.add_hline(y=16, line_dash="dash", line_color="green", annotation_text="Mais realizados que atribuídos", annotation_position="bottom right")
+fig_residual.add_hline(y=0, line_dash="dash", line_color="green")
 # Show the line chart in Streamlit
 # Add the "target" annotation
-fig_residual.add_annotation(text="Mais atribuídos que realizados", xref="paper", yref="y", x=0.999, y=-13.0, showarrow=False)
+fig_residual.add_annotation(text="Mais atribuídos que realizados", xref="paper", yref="y", x=0.999, y=-14.0, showarrow=False)
+fig_residual.add_annotation(text="Mais realizados que atribuídos", xref="paper", yref="y", x=0.999, y=16.0, showarrow=False)
 st.plotly_chart(fig_residual)
 
 
