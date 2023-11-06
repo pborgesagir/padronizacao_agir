@@ -259,7 +259,7 @@ fig_residual = px.line(df_residual_values, x="Year-Month", y="Valor Residual", t
 fig_residual.update_traces(mode="lines+markers")
 
 # Show the line chart in Streamlit
-col6.plotly_chart(fig_residual)
+st.plotly_chart(fig_residual)
 
 
 
