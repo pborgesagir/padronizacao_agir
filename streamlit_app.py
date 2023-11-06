@@ -245,36 +245,41 @@ col3.plotly_chart(fig_donut)
 
 #ULTIMO GRAFICO
 
+import plotly.express as px
+
 # Calculate the Quantity of "ATRIBUÍDO" (total number of rows in filtered_df)
 quantity_atribuido = len(filtered_df)
 
 # Calculate the Quantity of "FINALIZADO"
 if quarter == "Todos" and month == "Todos":
     # When both "Trimestre" and "Mês" are "Todos", quantity_finalizado is the count of values in "FORMULA 1" in df
-    quantity_finalizado = quantity_residual - (df1["FORMULA 1"] == 2).sum()
+    quantity_finalizado = (df1["FORMULA 1"] == 2).sum()
 else:
     # When at least one of "Trimestre" or "Mês" is not "Todos"
     if quarter == "Todos":
-        # When only "Trimestre" is "Todos", use the first value in "Year-Month conclusion" of filtered_df
-        first_year_month = filtered_df["Year-Month conclusion"].iloc[0]
+        # When only "Trimestre" is "Todos", use the first value in "Year-Month" of filtered_df
+        first_year_month = filtered_df["Year-Month"].iloc[0]
         quantity_finalizado = (df["Year-Month conclusion"] == first_year_month).sum()
     else:
         if month == "Todos":
-            # When only "Mês" is "Todos", use the first value in "Year-Quarter conclusion" of filtered_df
-            first_year_quarter = filtered_df["Year-Quarter conclusion"].iloc[0]
+            # When only "Mês" is "Todos", use the first value in "Year-Quarter" of filtered_df
+            first_year_quarter = filtered_df["Year-Quarter"].iloc[0]
             quantity_finalizado = (df["Year-Quarter conclusion"] == first_year_quarter).sum()
         else:
             # When both "Trimestre" and "Mês" are not "Todos", quantity_finalizado is 0
             quantity_finalizado = 0
 
-# Calculate the Quantity of "RESIDUAL"
-quantity_residual = quantity_atribuido - quantity_finalizado
+# Calculate the cumulative sum of "quantity_atribuido"
+filtered_df["cumulative_atribuido"] = filtered_df["quantity_atribuido"].cumsum()
 
-# Add the "quantity_residual" column to the DataFrame
-filtered_df["quantity_residual"] = quantity_residual
+# Calculate the cumulative sum of "quantity_finalizado"
+filtered_df["cumulative_finalizado"] = filtered_df["quantity_finalizado"].cumsum()
+
+# Calculate "quantity_residual" over time
+filtered_df["quantity_residual_over_time"] = filtered_df["cumulative_atribuido"] - filtered_df["cumulative_finalizado"]
 
 # Create a line chart to visualize the evolution of quantity_residual over time
-fig_residual_evolution = px.line(filtered_df, x="Year-Month conclusion", y="quantity_residual", title="Evolution of Residual Quantity Over Time")
+fig_residual_evolution = px.line(filtered_df, x="Year-Month", y="quantity_residual_over_time", title="Evolution of Residual Quantity Over Time")
 st.plotly_chart(fig_residual_evolution)
 
 
