@@ -245,15 +245,22 @@ col3.plotly_chart(fig_donut)
 
 #ULTIMO GRAFICO
 
-# Filter the DataFrame to include only rows with "RESIDUAL" in "ANDAMENTO:"
-residual_data = filtered_df[filtered_df["ANDAMENTO:"] == "RESIDUAL"]
+import plotly.express as px
 
-# Group the data by a time-based column (e.g., "Year-Month") and count the occurrences
-residual_counts = residual_data.groupby("Year-Month")["ANDAMENTO:"].count().reset_index(name="RESIDUAL Count")
+# Calculate the Quantity of "ATRIBUÍDO" (total number of rows in filtered_df)
+quantity_atribuido = len(filtered_df)
+quantity_finalizado = quantity_finalizado  # This value is already calculated in your code
 
-# Create a line chart to show the evolution of "RESIDUAL" over time
-fig_residual_evolution = px.line(residual_counts, x="Year-Month", y="RESIDUAL Count", title="Evolution of RESIDUAL Over Time")
+# Calculate the Quantity of "RESIDUAL"
+quantity_residual = quantity_atribuido - quantity_finalizado
+
+# Group the data by "Year-Month" and calculate the sum of "quantity_residual" for each month
+residual_data = filtered_df.groupby("Year-Month")["quantity_residual"].sum().reset_index()
+
+# Create a line chart to visualize the evolution of quantity_residual over time
+fig_residual_evolution = px.line(residual_data, x="Year-Month", y="quantity_residual", title="Evolution of Residual Quantity Over Time")
 st.plotly_chart(fig_residual_evolution)
+
 
 
 
