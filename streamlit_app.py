@@ -99,7 +99,7 @@ st.dataframe(filtered_df)
 col1, col2 = st.columns(2)
 col3, col4 = st.columns(2)
 col5, col7 = st.columns(2)
-col6 = st.columns(1)
+col6 = st.column(1)
 
 
 
