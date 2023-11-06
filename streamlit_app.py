@@ -253,7 +253,7 @@ data = {
 df_residual_values = pd.DataFrame(data)
 
 # Create a line chart for the residual values over time
-fig_residual = px.line(df_residual_values, x="", y="Valor Residual", title="Valor Residual ao longo do tempo")
+fig_residual = px.line(df_residual_values, x="Year-Month", y="Valor Residual", title="Valor Residual ao longo do tempo")
 
 # Customize the line chart if needed
 fig_residual.update_traces(mode="lines+markers")
