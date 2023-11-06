@@ -262,7 +262,7 @@ fig_residual.add_hline(y=0, line_dash="dash", line_color="green")
 # Show the line chart in Streamlit
 # Add the "target" annotation
 
-st.plotly_chart(fig_residual)
+col6.plotly_chart(fig_residual)
 
 
 
