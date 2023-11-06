@@ -258,7 +258,10 @@ fig_residual = px.line(df_residual_values, x="Year-Month", y="Valor Residual", t
 # Customize the line chart if needed
 fig_residual.update_traces(mode="lines+markers")
 
+fig_residual.add_hline(y=0, line_dash="dash", line_color="green", annotation_text="0", annotation_position="bottom right")
 # Show the line chart in Streamlit
+# Add the "target" annotation
+fig_residual.add_annotation(text="META", xref="paper", yref="y", x=0.999, y=0.1, showarrow=False)
 st.plotly_chart(fig_residual)
 
 
