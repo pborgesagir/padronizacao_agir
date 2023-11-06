@@ -245,6 +245,15 @@ col3.plotly_chart(fig_donut)
 
 #ULTIMO GRAFICO
 
+# Filter the DataFrame to include only rows with "RESIDUAL" in "ANDAMENTO:"
+residual_data = filtered_df[filtered_df["ANDAMENTO:"] == "RESIDUAL"]
+
+# Group the data by a time-based column (e.g., "Year-Month") and count the occurrences
+residual_counts = residual_data.groupby("Year-Month")["ANDAMENTO:"].count().reset_index(name="RESIDUAL Count")
+
+# Create a line chart to show the evolution of "RESIDUAL" over time
+fig_residual_evolution = px.line(residual_counts, x="Year-Month", y="RESIDUAL Count", title="Evolution of RESIDUAL Over Time")
+st.plotly_chart(fig_residual_evolution)
 
 
 
