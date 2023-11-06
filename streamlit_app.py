@@ -99,7 +99,7 @@ st.dataframe(filtered_df)
 col1, col2 = st.columns(2)
 col3, col4 = st.columns(2)
 col5, col7 = st.columns(2)
-col6 = st.column(1)
+col6 = st.columns(1)
 
 
 
@@ -262,7 +262,7 @@ fig_residual.add_hline(y=0, line_dash="dash", line_color="green")
 # Show the line chart in Streamlit
 # Add the "target" annotation
 
-col6.plotly_chart(fig_residual)
+st.plotly_chart(fig_residual)
 
 
 
