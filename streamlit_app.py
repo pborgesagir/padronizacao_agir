@@ -92,7 +92,7 @@ if unidade != "Todos":
     filtered_df = filtered_df[filtered_df["UNIDADE:"] == unidade]
 
 # Display the filtered DataFrame
-st.write("Filtered Data:")
+st.write("Dados Selecionados:")
 st.dataframe(filtered_df)
 
 
