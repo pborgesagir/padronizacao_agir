@@ -261,8 +261,7 @@ fig_residual.update_traces(mode="lines+markers")
 fig_residual.add_hline(y=0, line_dash="dash", line_color="green")
 # Show the line chart in Streamlit
 # Add the "target" annotation
-fig_residual.add_annotation(text="Mais atribuídos que realizados", xref="paper", yref="y", x=0.999, y=-12.5, showarrow=False)
-fig_residual.add_annotation(text="Mais realizados que atribuídos", xref="paper", yref="y", x=0.999, y=17.5, showarrow=False)
+
 st.plotly_chart(fig_residual)
 
 
