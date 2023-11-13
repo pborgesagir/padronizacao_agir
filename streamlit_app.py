@@ -4,6 +4,7 @@ import pandas as pd
 from datetime import datetime
 import plotly.express as px
 import plotly.graph_objects as go
+import numpy as np
 
 
 st.set_page_config(layout="wide")
@@ -25,12 +26,16 @@ df = df.dropna(subset=["DATA DE ATRIBUIÇÃO:"])
 df["Year"] = df["DATA DE ATRIBUIÇÃO:"].dt.year
 df["Month"] = df["DATA DE ATRIBUIÇÃO:"].dt.month
 df["Quarter"] = df["DATA DE ATRIBUIÇÃO:"].dt.quarter
+df["Semester"] = np.where(df["DATA DE ATRIBUIÇÃO:"].dt.month.isin([1, 2, 3, 4, 5, 6]), 1, 2)
 
 # Create a "Year-Quarter" column
 df["Year-Quarter"] = df["Year"].astype(str) + "-T" + df["Quarter"].astype(str)
 
 # If you want to create a "Year-Month" column, you can use the following line
 df["Year-Month"] = df["DATA DE ATRIBUIÇÃO:"].dt.strftime("%Y-%m")
+
+# Create a "Year-Quarter" column
+df["Year-Semester"] = df["Year"].astype(str) + "-S" + df["Semester"].astype(str)
 
 
 #----------------------- CREATING THE COLUMN TO DATA DE CONCLUSÃO ------
@@ -45,6 +50,7 @@ df = df.dropna(subset=["DATA DE CONCLUSÃO:"])
 df["Year conclusion"] = df["DATA DE CONCLUSÃO:"].dt.year
 df["Month conclusion"] = df["DATA DE CONCLUSÃO:"].dt.month
 df["Quarter conclusion"] = df["DATA DE CONCLUSÃO:"].dt.quarter
+df["Semester conclusion"] = np.where(df["DATA DE CONCLUSÃO:"].dt.month.isin([1, 2, 3, 4, 5, 6]), 1, 2)
 
 # Create a "Year-Quarter" column
 df["Year-Quarter conclusion"] = df["Year conclusion"].astype(str) + "-T" + df["Quarter conclusion"].astype(str)
@@ -52,21 +58,32 @@ df["Year-Quarter conclusion"] = df["Year conclusion"].astype(str) + "-T" + df["Q
 # If you want to create a "Year-Month" column, you can use the following line
 df["Year-Month conclusion"] = df["DATA DE CONCLUSÃO:"].dt.strftime("%Y-%m")
 
-
+# Create a "Year-Quarter" column
+df["Year-Semester conclusion"] = df["Year"].astype(str) + "-S" + df["Semester conclusion"].astype(str)
 #--------------------------------------
 
 
 # Sort the unique values in ascending order
 unique_year_month = sorted(df["Year-Month"].unique())
 unique_year_quarter = sorted(df["Year-Quarter"].unique())
+unique_year_semester = sorted(df["Year-Semester"].unique())
+unique_year = sorted(df["Year"].unique())
+
+
 
 # Add "All" as an option for both filters
 unique_year_month.insert(0, "Todos")
 unique_year_quarter.insert(0, "Todos")
+unique_year_semester.insert(0, "Todos")
+unique_year.insert(0, "Todos")
+
 
 # Create a sidebar for selecting filters
 month = st.sidebar.selectbox("Mês", unique_year_month)
 quarter = st.sidebar.selectbox("Trimestre", unique_year_quarter)
+semester = st.sidebar.selectbox("Semestre", unique_year_semester)
+year = st.sidebar.selectbox("Ano", unique_year)
+
 
 # Define the list of "UNIDADE:" values and add "Todos" as an option
 desired_unidades = ["CRER", "HECAD", "HUGOL", "HDS", "AGIR", "TEIA", "CED"]
@@ -87,6 +104,22 @@ if quarter == "Todos":
 else:
     filtered_df = month_filtered[month_filtered["Year-Quarter"] == quarter]
 
+
+# Check if "All" is selected for the "Year-Quarter" filter
+if semester == "Todos":
+    filtered_df = filtered_df
+else:
+    filtered_df = filtered_df[filtered_df["Year-Semester"] == semester]
+
+
+# Check if "All" is selected for the "Year-Quarter" filter
+if year == "Todos":
+    filtered_df = filtered_df
+else:
+    filtered_df = filtered_df[filtered_df["Year"] == year]
+
+
+
 # Check if "Todos" is selected for the "UNIDADE:" filter
 if unidade != "Todos":
     filtered_df = filtered_df[filtered_df["UNIDADE:"] == unidade]
@@ -100,6 +133,7 @@ col1, col2 = st.columns(2)
 col3, col4 = st.columns(2)
 col5, col7 = st.columns(2)
 col6 = st.columns(1)
+col8, col9 = st.columns(2)
 
 
 
@@ -252,6 +286,11 @@ data = {
 
 df_residual_values = pd.DataFrame(data)
 
+
+
+#----------------------------------------------------------------------
+
+
 # Create a line chart for the residual values over time
 fig_residual = px.line(df_residual_values, x="Year-Month", y="Valor Residual", title="Valor Residual ao longo do tempo")
 
@@ -259,10 +298,45 @@ fig_residual = px.line(df_residual_values, x="Year-Month", y="Valor Residual", t
 fig_residual.update_traces(mode="lines+markers")
 
 fig_residual.add_hline(y=0, line_dash="dash", line_color="green")
-# Show the line chart in Streamlit
-# Add the "target" annotation
 
+# Update the layout to set the width
+fig_residual.update_layout(width=1125)  # You can adjust the width as needed
+
+# Show the line chart in Streamlit
 st.plotly_chart(fig_residual)
+
+
+
+avg_lead_time_value = filtered_df["LEAD TIME DO PROCESSO:"].mean()
+
+# Format the average lead time value to display only three decimals
+avg_lead_time_value = "{:.3f}".format(avg_lead_time_value)
+
+
+# Display the average lead time in a metric display
+col9.subheader('Lead Time médio ⏳')
+col9.metric(label='Lead Time (dias)', value=avg_lead_time_value, delta=None)
+
+# Optionally, you can add a description or any additional information
+col9.write("Esse valor representa o lead time do período selecionado.")
+
+
+
+# Group the data by "Year-Month" and calculate the average lead time
+avg_lead_time_over_time = filtered_df.groupby("Year-Month")["LEAD TIME DO PROCESSO:"].mean().reset_index()
+
+# Create a line chart for the average lead time over time
+fig_avg_lead_time_over_time = px.line(avg_lead_time_over_time, x="Year-Month", y="LEAD TIME DO PROCESSO:", title="Lead Time Médio ao longo do tempo")
+
+# Customize the line chart if needed
+fig_avg_lead_time_over_time.update_traces(mode="lines+markers")
+
+# Update the layout to set the width
+fig_avg_lead_time_over_time.update_layout(width=600)
+
+
+# Show the line chart in Streamlit
+col8.plotly_chart(fig_avg_lead_time_over_time)
 
 
 
