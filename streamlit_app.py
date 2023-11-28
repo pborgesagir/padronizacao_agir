@@ -140,6 +140,14 @@ else:
 if unidade != "Todos":
     filtered_df = filtered_df[filtered_df["UNIDADE:"] == unidade]
 
+# Apply filters based on user selection
+if classificacao != "Todos":
+    filtered_df = filtered_df[filtered_df["CLASSIFICAÇÃO DO PROCESSO:"] == classificacao]
+
+if numero_processo != "Todos":
+    filtered_df = filtered_df[filtered_df["NÚMERO DO PROCESSO:"] == numero_processo]
+    
+
 # Display the filtered DataFrame
 st.write("Dados Selecionados:")
 st.dataframe(filtered_df)
