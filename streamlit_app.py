@@ -77,6 +77,22 @@ unique_year_quarter.insert(0, "Todos")
 unique_year_semester.insert(0, "Todos")
 unique_year.insert(0, "Todos")
 
+# Define the list of "CLASSIFICAÇÃO DO PROCESSO:" values and add "Todos" as an option
+desired_classificacao = df["CLASSIFICAÇÃO DO PROCESSO:"].unique().tolist()
+desired_classificacao.insert(0, "Todos")
+
+# Create a filter for selecting "CLASSIFICAÇÃO DO PROCESSO:"
+classificacao = st.sidebar.selectbox("Classificação do Processo:", desired_classificacao)
+
+# Define the list of "NÚMERO DO PROCESSO:" values and add "Todos" as an option
+desired_numero_processo = df["NÚMERO DO PROCESSO:"].unique().tolist()
+desired_numero_processo.insert(0, "Todos")
+
+# Create a filter for selecting "NÚMERO DO PROCESSO:"
+numero_processo = st.sidebar.selectbox("Número do Processo:", desired_numero_processo)
+
+
+
 
 # Create a sidebar for selecting filters
 month = st.sidebar.selectbox("Mês", unique_year_month)
