@@ -124,27 +124,9 @@ else:
 if unidade != "Todos":
     filtered_df = filtered_df[filtered_df["UNIDADE:"] == unidade]
 
-# Create a filter for selecting "CLASSIFICAÇÃO DO PROCESSO:"
-classificacao = st.sidebar.selectbox("Classificação do Processo:", desired_classificacao)
-
-# Define the list of "NÚMERO DO PROCESSO:" values and add "Todos" as an option
-desired_numero_processo = df["NÚMERO DO PROCESSO:"].unique().tolist()
-desired_numero_processo.insert(0, "Todos")
-
-# Create a filter for selecting "NÚMERO DO PROCESSO:"
-numero_processo = st.sidebar.selectbox("Número do Processo:", desired_numero_processo)
-
-# Apply filters based on user selection
-if classificacao != "Todos":
-    filtered_df = filtered_df[filtered_df["CLASSIFICAÇÃO DO PROCESSO:"] == classificacao]
-
-if numero_processo != "Todos":
-    filtered_df = filtered_df[filtered_df["NÚMERO DO PROCESSO:"] == numero_processo]
-
 # Display the filtered DataFrame
 st.write("Dados Selecionados:")
 st.dataframe(filtered_df)
-
 
 
 col1, col2 = st.columns(2)
