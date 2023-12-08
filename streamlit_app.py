@@ -10,7 +10,7 @@ import numpy as np
 st.set_page_config(layout="wide")
 url = "https://docs.google.com/spreadsheets/d/1CGypJWn35SFD6oYeLmFU1HjMhxJRBpuuVuVeP7y86wo/edit#gid=0"
 st.title("DASHBOARD - PADRONIZAÇÃO AGIR")
-conn = st.experimental_connection("gsheets", type=GSheetsConnection)
+conn = st.connection("gsheets", type=GSheetsConnection)
 
 df = conn.read(spreadsheet=url, usecols=list(range(22)))
 df1 = conn.read(spreadsheet=url, usecols=list(range(22)))
