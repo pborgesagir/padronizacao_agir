@@ -148,9 +148,7 @@ if numero_processo != "Todos":
     filtered_df = filtered_df[filtered_df["NÚMERO DO PROCESSO:"] == numero_processo]
     
 
-# Display the filtered DataFrame
-st.write("Dados Selecionados:")
-st.dataframe(filtered_df)
+
 
 
 col1, col2 = st.columns(2)
@@ -361,6 +359,13 @@ fig_avg_lead_time_over_time.update_layout(width=600)
 
 # Show the line chart in Streamlit
 col8.plotly_chart(fig_avg_lead_time_over_time)
+
+
+
+# Display the filtered DataFrame
+st.write("Dados Selecionados:")
+st.dataframe(filtered_df)
+
 
 
 
