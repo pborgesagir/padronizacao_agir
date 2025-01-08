@@ -337,28 +337,29 @@ col3.plotly_chart(fig_donut)
 
 
 # --------------------------------------------------------------------------
-# 7) TREEMAP: CLASSIFICAÇÃO DO PROCESSO POR ANALISTA
+# TREEMAP: CLASSIFICAÇÃO DO PROCESSO POR ANALISTA (INVERTED)
 # --------------------------------------------------------------------------
 
-# Group data by "ANALISTA:" and "CLASSIFICAÇÃO DO PROCESSO:" and count
+# Group data by "CLASSIFICAÇÃO DO PROCESSO:" and "ANALISTA:" and count
 classification_by_analyst = (
-    filtered_df.groupby(["ANALISTA:", "CLASSIFICAÇÃO DO PROCESSO:"])
+    filtered_df.groupby(["CLASSIFICAÇÃO DO PROCESSO:", "ANALISTA:"])
     .size()
     .reset_index(name="Quantidade")
 )
 
 # Create a treemap
-fig_treemap = px.treemap(
+fig_treemap_inverted = px.treemap(
     classification_by_analyst,
-    path=["ANALISTA:", "CLASSIFICAÇÃO DO PROCESSO:"],
+    path=["CLASSIFICAÇÃO DO PROCESSO:", "ANALISTA:"],  # Inverted order
     values="Quantidade",
-    title="Classificação do Processo por Analista (Treemap)",
+    title="Classificação do Processo por Analista (Treemap Inverted)",
     color="Quantidade",
     color_continuous_scale="Blues",  # You can change color scale if desired
 )
 
-# You can display the treemap in a Streamlit column or directly with st.plotly_chart
-st.plotly_chart(fig_treemap)
+# Display the treemap in a Streamlit column or directly with st.plotly_chart
+st.plotly_chart(fig_treemap_inverted)
+
 
 
 
