@@ -354,7 +354,7 @@ fig_treemap_inverted = px.treemap(
     classification_by_analyst,
     path=["CLASSIFICAÇÃO DO PROCESSO:", "ANALISTA:"],  # Inverted order
     values="Quantidade",
-    title="Classificação do Processo por Analista (Treemap Inverted)",
+    title="Classificação do Processo por Analista",
     color="Quantidade",
     color_continuous_scale="Blues",  # You can change color scale if desired
 )
