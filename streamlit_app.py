@@ -156,36 +156,51 @@ analista = st.sidebar.selectbox("Analista:", unique_analista)
 if analista != "Todos":
     filtered_df = filtered_df[filtered_df["ANALISTA:"] == analista]
 
-# --------------------------------------------------------------------------
-# 5) KPIs AND VISUALS
-# --------------------------------------------------------------------------
+
+
+
 col1, col2 = st.columns(2)
 col3, col4 = st.columns(2)
 col5, col7 = st.columns(2)
-# Just to avoid error in the example, removing extra col6 or col8 if not used:
-# col6 = st.columns(1)
-# col8, col9 = st.columns(2)
+col6 = st.columns(1)
+col8, col9 = st.columns(2)
+
+
+
+
+
+
 
 # Calculate the Quantity of "ATRIBUÍDO" (total number of rows in filtered_df)
 quantity_atribuido = len(filtered_df["Year-Month"])
 quantity_residual = (df1["FORMULA 1"] == 2).sum()
-
 # Calculate the Quantity of "FINALIZADO"
 if quarter == "Todos" and month == "Todos":
+    # When both "Trimestre" and "Mês" are "Todos", quantity_finalizado is the count of values in "FORMULA 1" in df
     quantity_finalizado = quantity_atribuido - quantity_residual
 else:
+    # When at least one of "Trimestre" or "Mês" is not "Todos"
     if quarter == "Todos":
-        first_year_month = filtered_df["Year-Month"].iloc[0] if not filtered_df.empty else None
-        quantity_finalizado = (df["Year-Month conclusion"] == first_year_month).sum() if first_year_month else 0
+        # When only "Trimestre" is "Todos", use the first value in "Year-Month" of filtered_df
+        first_year_month = filtered_df["Year-Month"].iloc[0]
+        quantity_finalizado = (df["Year-Month conclusion"] == first_year_month).sum()
     else:
         if month == "Todos":
-            first_year_quarter = filtered_df["Year-Quarter"].iloc[0] if not filtered_df.empty else None
-            quantity_finalizado = (df["Year-Quarter conclusion"] == first_year_quarter).sum() if first_year_quarter else 0
+            # When only "Mês" is "Todos", use the first value in "Year-Quarter" of filtered_df
+            first_year_quarter = filtered_df["Year-Quarter"].iloc[0]
+            quantity_finalizado = (df["Year-Quarter conclusion"] == first_year_quarter).sum()
         else:
+            # When both "Trimestre" and "Mês" are not "Todos", quantity_finalizado is 0
             quantity_finalizado = 0
 
 # Calculate the Quantity of "RESIDUAL"
 quantity_residual = quantity_atribuido - quantity_finalizado
+
+
+
+
+
+
 
 # Create a dictionary to hold the values
 data = {
@@ -193,138 +208,180 @@ data = {
     'Quantity': [quantity_residual, quantity_atribuido, quantity_finalizado]
 }
 
+
 # You can also display the values as text in the sidebar
 st.sidebar.markdown(f"**RESIDUAL:** {quantity_residual}")
 st.sidebar.markdown(f"**ATRIBUÍDO:** {quantity_atribuido}")
 st.sidebar.markdown(f"**FINALIZADO:** {quantity_finalizado}")
 
-# ----------------------------------------------------------------------------
-# BAR CHART: Qtd de processos atribuídos a cada analista
-# ----------------------------------------------------------------------------
+# Standardize the names and capitalize the first letter
+filtered_df["ANALISTA:"] = filtered_df["ANALISTA:"].str.strip().str.lower().str.capitalize()
+filtered_df["ANALISTA:"].replace({"Renato": "Renato", "Ingrid": "Ingrid", "Naiani": "Naiani", "Yasmine ": "Yasmine"}, inplace=True)
+
 counts = filtered_df["ANALISTA:"].value_counts().reset_index()
 counts.columns = ["ANALISTA", "Quantidade"]
 
-fig_date = px.bar(
-    counts, 
-    x="ANALISTA", 
-    y="Quantidade", 
-    title="Quantidade de processos atribuídos a cada analista"
-)
+fig_date = px.bar(counts, x="ANALISTA", y="Quantidade", title="Quantidade de processos atribuídos a cada analista")
 col1.plotly_chart(fig_date)
 
-# ----------------------------------------------------------------------------
-# BAR CHART: Lead Time Médio por Analista
-# ----------------------------------------------------------------------------
-if "LEAD TIME DO PROCESSO:" in filtered_df.columns:
-    avg_lead_time = filtered_df.groupby("ANALISTA:")["LEAD TIME DO PROCESSO:"].mean().reset_index()
-    avg_lead_time = avg_lead_time.sort_values(by="LEAD TIME DO PROCESSO:", ascending=False)
+# Assuming filtered_df is your DataFrame
+avg_lead_time = filtered_df.groupby("ANALISTA:")["LEAD TIME DO PROCESSO:"].mean().reset_index()
+avg_lead_time = avg_lead_time.sort_values(by="LEAD TIME DO PROCESSO:", ascending=False)
 
-    fig_avg_lead_time = px.bar(
-        avg_lead_time, 
-        x="ANALISTA:", 
-        y="LEAD TIME DO PROCESSO:", 
-        title="Lead Time Médio por Analista"
-    )
-    col2.plotly_chart(fig_avg_lead_time)
+fig_avg_lead_time = px.bar(avg_lead_time, x="ANALISTA:", y="LEAD TIME DO PROCESSO:", title="Lead Time Médio por Analista")
+col2.plotly_chart(fig_avg_lead_time)
 
-# ----------------------------------------------------------------------------
-# LINE CHART: Taxa de assertividade dos processos recebidos (%)
-# ----------------------------------------------------------------------------
-assertividade_data = filtered_df.groupby(["Year-Month"])["ANDAMENTO:"].apply(
-    lambda x: (x == "FINALIZADO").sum() / x.count() * 100 if x.count() > 0 else 0
-).reset_index()
+#   TERCEIRO GRÁFICO
+# Calculate the "Taxa de assertividade" for each month
+assertividade_data = filtered_df.groupby(["Year-Month"])["ANDAMENTO:"].apply(lambda x: (x == "FINALIZADO").sum() / x.count() * 100).reset_index()
 assertividade_data.columns = ["Year-Month", "Taxa de assertividade"]
 
-fig_assertividade = px.line(
-    assertividade_data, 
-    x="Year-Month", 
-    y="Taxa de assertividade", 
-    title="Taxa de assertividade dos processos recebidos (%)"
-)
+# Create a line chart
+fig_assertividade = px.line(assertividade_data, x="Year-Month", y="Taxa de assertividade", title="Taxa de assertividade dos processos recebidos (%)")
 
+# Add a horizontal line at 90%
 fig_assertividade.add_hline(y=90, line_dash="dash", line_color="green", annotation_text="90%", annotation_position="bottom right")
+
+# Add the "target" annotation
 fig_assertividade.add_annotation(text="META", xref="paper", yref="y", x=0.999, y=91, showarrow=False)
+
+# Show the line chart
 col4.plotly_chart(fig_assertividade)
 
-# ----------------------------------------------------------------------------
-# BAR CHART: Quantidade de Inconformidades por Unidade
-# ----------------------------------------------------------------------------
-desired_unidades_graph = ["CRER", "HECAD", "HUGOL", "HDS", "AGIR", "TEIA", "CED"]
-df_inconf = filtered_df[
-    (filtered_df["UNIDADE:"].isin(desired_unidades_graph)) 
-    & (filtered_df["INCONFORMIDADE 1:"] != "-")
-]
-grouped_data = df_inconf.groupby(["UNIDADE:", "INCONFORMIDADE 1:"]).size().reset_index(name="Quantidade")
+# QUARTO GRÁFICOOO -------------------
+
+# Define the list of "UNIDADE:" values you want to include
+desired_unidades = ["CRER", "HECAD", "HUGOL", "HDS", "AGIR", "TEIA", "CED"]
+
+# Filter the DataFrame to include only the desired "UNIDADE:" values and where "INCONFORMIDADE 1:" is not equal to "-"
+filtered_df = filtered_df[(filtered_df["UNIDADE:"].isin(desired_unidades)) & (filtered_df["INCONFORMIDADE 1:"] != "-")]
+
+# Group the data by "UNIDADE:" and "INCONFORMIDADE 1:" and count the occurrences
+grouped_data = filtered_df.groupby(["UNIDADE:", "INCONFORMIDADE 1:"]).size().reset_index(name="Quantidade")
+
+# Sort the grouped_data DataFrame in descending order based on the "Quantidade" column
 grouped_data = grouped_data.sort_values(by="Quantidade", ascending=False)
 
-fig_inconformidade = px.bar(
-    grouped_data, 
-    x="UNIDADE:", 
-    y="Quantidade", 
-    color="INCONFORMIDADE 1:", 
-    title="Quantidade de Inconformidades por Unidade"
-)
+# Create a bar chart
+fig_inconformidade = px.bar(grouped_data, x="UNIDADE:", y="Quantidade", color="INCONFORMIDADE 1:", title="Quantidade de Inconformidades por Unidade")
+
+# Show the bar chart
 col5.plotly_chart(fig_inconformidade)
 
-# ----------------------------------------------------------------------------
-# LINE CHART: Comportamento das Inconformidades por Mês
-# ----------------------------------------------------------------------------
-inconformidade_data = filtered_df[filtered_df["INCONFORMIDADE 1:"] != "-"]
-inconformidade_grouped = inconformidade_data.groupby(
-    ["Year-Month", "INCONFORMIDADE 1:"]
-).size().reset_index(name="Quantidade")
+#QUINTO GRÁFICO --------------------------------------
 
-fig_inconformidade_lines = px.line(
-    inconformidade_grouped, 
-    x="Year-Month", 
-    y="Quantidade", 
-    color="INCONFORMIDADE 1:", 
-    title="Comportamento das Inconformidades por Mês"
-)
+# Filter out rows with "-" values in "INCONFORMIDADE 1:"
+inconformidade_data = filtered_df[filtered_df["INCONFORMIDADE 1:"] != "-"]
+
+# Group the data by "Year-Month" and "INCONFORMIDADE 1:" and count the occurrences
+inconformidade_grouped = inconformidade_data.groupby(["Year-Month", "INCONFORMIDADE 1:"]).size().reset_index(name="Quantidade")
+
+# Create a line chart with multiple lines, one for each value in "INCONFORMIDADE 1:"
+fig_inconformidade_lines = px.line(inconformidade_grouped, x="Year-Month", y="Quantidade", color="INCONFORMIDADE 1:", title="Comportamento das Inconformidades por Mês")
+
+# Show the line chart
 col7.plotly_chart(fig_inconformidade_lines)
 
-# ----------------------------------------------------------------------------
-# DONUT CHART: Porcentagem de Produtividade da Equipe
-# ----------------------------------------------------------------------------
+#SEXTO GRÁFICO ---------------------------------
+
+# Filter the DataFrame to include only rows with "FINALIZADO" or "DEVOLVIDO A UNIDADE" in "ANDAMENTO:"
 completed_jobs = filtered_df[filtered_df["ANDAMENTO:"].isin(["FINALIZADO", "DEVOLVIDO A UNIDADE"])]
+
+# Group the data by "ANALISTA:" and count the occurrences
 analista_counts = completed_jobs["ANALISTA:"].value_counts().reset_index()
 analista_counts.columns = ["ANALISTA:", "Quantidade"]
 
+# Create a donut chart
 fig_donut = px.pie(
     analista_counts,
     names="ANALISTA:",
     values="Quantidade",
     title="Porcentagem de Produtividade da Equipe",
-    hole=0.4
+    hole=0.4  # Adjust the hole size (0.4 represents 40% of the inner hole)
 )
+
+# Show the donut chart
 col3.plotly_chart(fig_donut)
 
-# ----------------------------------------------------------------------------
-# LINE CHART: Valor Residual ao longo do tempo (Exemplo)
-# ----------------------------------------------------------------------------
-data_example = {
-    "Year-Month": [
-        "2022-01", "2022-02", "2022-03", "2022-04", "2022-05", "2022-06", 
-        "2022-07", "2022-08", "2022-09", "2022-10", "2022-11", "2022-12", 
-        "2023-01", "2023-02", "2023-03", "2023-04", "2023-05", "2023-06", 
-        "2023-07", "2023-08", "2023-09", "2023-10", "2023-11", "2023-12", 
-        "2024-01", "2024-02"
-    ],
-    "Valor Residual": [
-        20, 5, -1, -5, 11, 4, -6, -3, 7, -11, 0, -2, -13, -5, 2, -1, 4, -4, 
-        6, 2, 0, -8, -1, -3, 0, 1
-    ]
+
+
+
+
+#ULTIMO GRAFICO
+
+data = {
+    "Year-Month": ["2022-01", "2022-02", "2022-03", "2022-04", "2022-05", "2022-06", "2022-07", "2022-08", "2022-09", "2022-10", "2022-11", "2022-12", "2023-01", "2023-02", "2023-03", "2023-04", "2023-05", "2023-06", "2023-07", "2023-08", "2023-09", "2023-10", "2023-11", "2023-12", "2024-01", "2024-02"],
+    "Valor Residual": [20, 5, -1, -5, 11, 4, -6, -3, 7, -11, 0, -2, -13, -5, 2, -1, 4, -4, 6, 2, 0, -8, -1, -3, 0, 1]
 }
-df_residual_values = pd.DataFrame(data_example)
 
-fig_residual = px.line(
-    df_residual_values, 
-    x="Year-Month", 
-    y="Valor Residual", 
-    title="Valor Residual ao longo do tempo"
-)
+df_residual_values = pd.DataFrame(data)
+
+
+
+#----------------------------------------------------------------------
+
+
+# Create a line chart for the residual values over time
+fig_residual = px.line(df_residual_values, x="Year-Month", y="Valor Residual", title="Valor Residual ao longo do tempo")
+
+# Customize the line chart if needed
 fig_residual.update_traces(mode="lines+markers")
-fig_residual.add_hline(y=0, line_dash="dash", line_color="green")
-fig_residual.update_layout(width=1125)
 
+fig_residual.add_hline(y=0, line_dash="dash", line_color="green")
+
+# Update the layout to set the width
+fig_residual.update_layout(width=1125)  # You can adjust the width as needed
+
+# Show the line chart in Streamlit
 st.plotly_chart(fig_residual)
+
+
+
+avg_lead_time_value = filtered_df["LEAD TIME DO PROCESSO:"].mean()
+
+# Format the average lead time value to display only three decimals
+avg_lead_time_value = "{:.3f}".format(avg_lead_time_value)
+
+
+# Display the average lead time in a metric display
+col9.subheader('Lead Time médio ⏳')
+col9.metric(label='Lead Time (dias)', value=avg_lead_time_value, delta=None)
+
+# Optionally, you can add a description or any additional information
+col9.write("Esse valor representa o lead time do período selecionado.")
+
+
+
+# Group the data by "Year-Month" and calculate the average lead time
+avg_lead_time_over_time = filtered_df.groupby("Year-Month")["LEAD TIME DO PROCESSO:"].mean().reset_index()
+
+# Create a line chart for the average lead time over time
+fig_avg_lead_time_over_time = px.line(avg_lead_time_over_time, x="Year-Month", y="LEAD TIME DO PROCESSO:", title="Lead Time Médio ao longo do tempo")
+
+# Customize the line chart if needed
+fig_avg_lead_time_over_time.update_traces(mode="lines+markers")
+
+# Update the layout to set the width
+fig_avg_lead_time_over_time.update_layout(width=600)
+
+
+# Show the line chart in Streamlit
+col8.plotly_chart(fig_avg_lead_time_over_time)
+
+
+
+# Display the filtered DataFrame
+st.write("Dados Selecionados:")
+st.dataframe(filtered_df)
+
+
+
+
+#atribuídos x realizados x residual
+#meta de conformidade que é 90% e qual a % atual
+#processos devolvidos e quais as suas inconformidades
+#lead time por analista
+#meta prevista de 100% e meta realizada
+#quantidade de recebidos, de realziados e de inconformidades
+#% de produtividade da equipe
+#inconformidades por unidade
