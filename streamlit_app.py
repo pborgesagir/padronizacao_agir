@@ -302,57 +302,34 @@ col3.plotly_chart(fig_donut)
 
 
 
-# --------------------------------------------------------
-#  ULTIMO GRÁFICO - DINÂMICO: VALOR RESIDUAL AO LONGO DO TEMPO
-# --------------------------------------------------------
-# A) Contar quantos processos foram atribuídos em cada "Year-Month"
-assigned_per_month = (
-    df.groupby("Year-Month")["NÚMERO DO PROCESSO:"]
-    .count()
-    .sort_index()
-    .rename("Assigned")
-)
 
-# B) Contar quantos processos foram finalizados em cada "Year-Month conclusion"
-concluded_per_month = (
-    df[df["ANDAMENTO:"] == "FINALIZADO"]  # ou você pode tirar esse filtro se quiser "concluído" de outra forma
-    .groupby("Year-Month conclusion")["NÚMERO DO PROCESSO:"]
-    .count()
-    .sort_index()
-    .rename("Concluded")
-)
 
-# Precisamos de uma lista única de meses (Year-Month) presentes em ambos
-all_months = sorted(set(assigned_per_month.index).union(set(concluded_per_month.index)))
+#ULTIMO GRAFICO
 
-# Criar DataFrame com todos os meses
-df_residual_calc = pd.DataFrame({"Year-Month": all_months}).set_index("Year-Month")
+data = {
+    "Year-Month": ["2022-01", "2022-02", "2022-03", "2022-04", "2022-05", "2022-06", "2022-07", "2022-08", "2022-09", "2022-10", "2022-11", "2022-12", "2023-01", "2023-02", "2023-03", "2023-04", "2023-05", "2023-06", "2023-07", "2023-08", "2023-09", "2023-10", "2023-11", "2023-12", "2024-01", "2024-02"],
+    "Valor Residual": [20, 5, -1, -5, 11, 4, -6, -3, 7, -11, 0, -2, -13, -5, 2, -1, 4, -4, 6, 2, 0, -8, -1, -3, 0, 1]
+}
 
-# Juntar as colunas Assigned e Concluded, preenchendo 0 onde não há valor
-df_residual_calc["Assigned"] = assigned_per_month
-df_residual_calc["Concluded"] = concluded_per_month
-df_residual_calc = df_residual_calc.fillna(0)
+df_residual_values = pd.DataFrame(data)
 
-# Agora vamos calcular cumulativo: total atribuído até o mês, menos total concluído até o mês
-df_residual_calc["Assigned_cum"] = df_residual_calc["Assigned"].cumsum()
-df_residual_calc["Concluded_cum"] = df_residual_calc["Concluded"].cumsum()
 
-# "Valor Residual" é a diferença cumulativa
-df_residual_calc["Valor Residual"] = df_residual_calc["Assigned_cum"] - df_residual_calc["Concluded_cum"]
 
-# Vamos plotar
-fig_residual = px.line(
-    df_residual_calc.reset_index(),
-    x="Year-Month",
-    y="Valor Residual",
-    title="Valor Residual ao longo do tempo (Dinâmico)"
-)
+#----------------------------------------------------------------------
+
+
+# Create a line chart for the residual values over time
+fig_residual = px.line(df_residual_values, x="Year-Month", y="Valor Residual", title="Valor Residual ao longo do tempo")
+
+# Customize the line chart if needed
 fig_residual.update_traces(mode="lines+markers")
+
 fig_residual.add_hline(y=0, line_dash="dash", line_color="green")
 
-# Se quiser ajustar largura:
-fig_residual.update_layout(width=1125)
+# Update the layout to set the width
+fig_residual.update_layout(width=1125)  # You can adjust the width as needed
 
+# Show the line chart in Streamlit
 st.plotly_chart(fig_residual)
 
 
