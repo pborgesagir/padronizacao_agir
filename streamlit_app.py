@@ -161,9 +161,10 @@ if analista != "Todos":
 col9, col8 = st.columns(2)
 col1, col2 = st.columns(2)
 col3, col4 = st.columns(2)
+col10 = st.columns(1)[0] 
 col5, col7 = st.columns(2)
 col6 = st.columns(1)
-col10 = st.columns(1)[0] 
+
 
 
 
