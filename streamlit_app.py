@@ -307,33 +307,33 @@ col3.plotly_chart(fig_donut)
 
 
 
-#ULTIMO GRAFICO
+# #ULTIMO GRAFICO
 
-data = {
-    "Year-Month": ["2022-01", "2022-02", "2022-03", "2022-04", "2022-05", "2022-06", "2022-07", "2022-08", "2022-09", "2022-10", "2022-11", "2022-12", "2023-01", "2023-02", "2023-03", "2023-04", "2023-05", "2023-06", "2023-07", "2023-08", "2023-09", "2023-10", "2023-11", "2023-12", "2024-01", "2024-02"],
-    "Valor Residual": [20, 5, -1, -5, 11, 4, -6, -3, 7, -11, 0, -2, -13, -5, 2, -1, 4, -4, 6, 2, 0, -8, -1, -3, 0, 1]
-}
+# data = {
+#     "Year-Month": ["2022-01", "2022-02", "2022-03", "2022-04", "2022-05", "2022-06", "2022-07", "2022-08", "2022-09", "2022-10", "2022-11", "2022-12", "2023-01", "2023-02", "2023-03", "2023-04", "2023-05", "2023-06", "2023-07", "2023-08", "2023-09", "2023-10", "2023-11", "2023-12", "2024-01", "2024-02"],
+#     "Valor Residual": [20, 5, -1, -5, 11, 4, -6, -3, 7, -11, 0, -2, -13, -5, 2, -1, 4, -4, 6, 2, 0, -8, -1, -3, 0, 1]
+# }
 
-df_residual_values = pd.DataFrame(data)
-
-
-
-#----------------------------------------------------------------------
+# df_residual_values = pd.DataFrame(data)
 
 
-# Create a line chart for the residual values over time
-fig_residual = px.line(df_residual_values, x="Year-Month", y="Valor Residual", title="Valor Residual ao longo do tempo")
 
-# Customize the line chart if needed
-fig_residual.update_traces(mode="lines+markers")
+# #----------------------------------------------------------------------
 
-fig_residual.add_hline(y=0, line_dash="dash", line_color="green")
 
-# Update the layout to set the width
-fig_residual.update_layout(width=1125)  # You can adjust the width as needed
+# # Create a line chart for the residual values over time
+# fig_residual = px.line(df_residual_values, x="Year-Month", y="Valor Residual", title="Valor Residual ao longo do tempo")
 
-# Show the line chart in Streamlit
-st.plotly_chart(fig_residual)
+# # Customize the line chart if needed
+# fig_residual.update_traces(mode="lines+markers")
+
+# fig_residual.add_hline(y=0, line_dash="dash", line_color="green")
+
+# # Update the layout to set the width
+# fig_residual.update_layout(width=1125)  # You can adjust the width as needed
+
+# # Show the line chart in Streamlit
+# st.plotly_chart(fig_residual)
 
 
 
