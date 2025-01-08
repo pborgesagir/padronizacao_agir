@@ -163,6 +163,7 @@ col1, col2 = st.columns(2)
 col3, col4 = st.columns(2)
 col5, col7 = st.columns(2)
 col6 = st.columns(1)
+col10 = st.columns(1)
 
 
 
@@ -358,7 +359,7 @@ fig_treemap_inverted = px.treemap(
 )
 
 # Display the treemap in a Streamlit column or directly with st.plotly_chart
-st.plotly_chart(fig_treemap_inverted)
+col10.plotly_chart(fig_treemap_inverted)
 
 
 
