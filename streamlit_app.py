@@ -336,6 +336,34 @@ col3.plotly_chart(fig_donut)
 # st.plotly_chart(fig_residual)
 
 
+# --------------------------------------------------------------------------
+# 7) TREEMAP: CLASSIFICAÇÃO DO PROCESSO POR ANALISTA
+# --------------------------------------------------------------------------
+
+# Group data by "ANALISTA:" and "CLASSIFICAÇÃO DO PROCESSO:" and count
+classification_by_analyst = (
+    filtered_df.groupby(["ANALISTA:", "CLASSIFICAÇÃO DO PROCESSO:"])
+    .size()
+    .reset_index(name="Quantidade")
+)
+
+# Create a treemap
+fig_treemap = px.treemap(
+    classification_by_analyst,
+    path=["ANALISTA:", "CLASSIFICAÇÃO DO PROCESSO:"],
+    values="Quantidade",
+    title="Classificação do Processo por Analista (Treemap)",
+    color="Quantidade",
+    color_continuous_scale="Blues",  # You can change color scale if desired
+)
+
+# You can display the treemap in a Streamlit column or directly with st.plotly_chart
+st.plotly_chart(fig_treemap)
+
+
+
+
+
 
 avg_lead_time_value = filtered_df["LEAD TIME DO PROCESSO:"].mean()
 
