@@ -55,364 +55,253 @@ df["Year-Month conclusion"] = df["DATA DE CONCLUSÃO:"].dt.strftime("%Y-%m")
 df["Year-Semester conclusion"] = df["Year"].astype(str) + "-S" + df["Semester conclusion"].astype(str)
 
 # --------------------------------------------------------------------------
-# 2) SIDEBAR FILTERS
+# 2) SIDEBAR FILTERS (MULTI-SELECTION)
 # --------------------------------------------------------------------------
 
-# --- Year/Month/Quarter/Semester filters ---
-unique_year_month = sorted(df["Year-Month"].unique())
-unique_year_quarter = sorted(df["Year-Quarter"].unique())
-unique_year_semester = sorted(df["Year-Semester"].unique())
-unique_year = sorted(df["Year"].unique())
+unique_year_month = sorted(df["Year-Month"].dropna().unique())
+unique_year_quarter = sorted(df["Year-Quarter"].dropna().unique())
+unique_year_semester = sorted(df["Year-Semester"].dropna().unique())
+unique_year = sorted(df["Year"].dropna().unique())
 
-unique_year_month.insert(0, "Todos")
-unique_year_quarter.insert(0, "Todos")
-unique_year_semester.insert(0, "Todos")
-unique_year.insert(0, "Todos")
+# Let’s give the user a multi-select widget for each dimension.
+# If the user selects nothing, we'll treat that as "no filter" for that dimension.
+month_selection = st.sidebar.multiselect("Mês (Year-Month)", unique_year_month, default=[])
+quarter_selection = st.sidebar.multiselect("Trimestre (Year-Quarter)", unique_year_quarter, default=[])
+semester_selection = st.sidebar.multiselect("Semestre (Year-Semester)", unique_year_semester, default=[])
+year_selection = st.sidebar.multiselect("Ano (Year)", unique_year, default=[])
 
-month = st.sidebar.selectbox("Mês", unique_year_month)
-quarter = st.sidebar.selectbox("Trimestre", unique_year_quarter)
-semester = st.sidebar.selectbox("Semestre", unique_year_semester)
-year = st.sidebar.selectbox("Ano", unique_year)
+# --- Classificação filter (multi) ---
+unique_classificacao = sorted(df["CLASSIFICAÇÃO DO PROCESSO:"].dropna().unique())
+classificacao_selection = st.sidebar.multiselect("Classificação do Processo:", unique_classificacao, default=[])
 
-# --- Classificação filter ---
-desired_classificacao = df["CLASSIFICAÇÃO DO PROCESSO:"].unique().tolist()
-desired_classificacao.insert(0, "Todos")
-classificacao = st.sidebar.selectbox("Classificação do Processo:", desired_classificacao)
+# --- Número do Processo filter (multi) ---
+unique_numero_processo = sorted(df["NÚMERO DO PROCESSO:"].dropna().unique())
+numero_processo_selection = st.sidebar.multiselect("Número do Processo:", unique_numero_processo, default=[])
 
-# --- Número do Processo filter ---
-desired_numero_processo = df["NÚMERO DO PROCESSO:"].unique().tolist()
-desired_numero_processo.insert(0, "Todos")
-numero_processo = st.sidebar.selectbox("Número do Processo:", desired_numero_processo)
-
-# --- Unidade filter ---
+# --- Unidade filter (multi) ---
 desired_unidades = ["CRER", "HECAD", "HUGOL", "HDS", "AGIR", "TEIA", "CED"]
-desired_unidades.insert(0, "Todos")
-unidade = st.sidebar.selectbox("Unidade:", desired_unidades)
+unidade_selection = st.sidebar.multiselect("Unidade:", desired_unidades, default=[])
 
 # --------------------------------------------------------------------------
-# 3) APPLY FILTERS IN SEQUENCE
+# 3) APPLY FILTERS
 # --------------------------------------------------------------------------
 filtered_df = df.copy()
 
-# 3.1) Year-Month
-if month != "Todos":
-    filtered_df = filtered_df[filtered_df["Year-Month"] == month]
+# Filter by Year-Month
+if month_selection:
+    filtered_df = filtered_df[filtered_df["Year-Month"].isin(month_selection)]
 
-# 3.2) Year-Quarter
-if quarter != "Todos":
-    filtered_df = filtered_df[filtered_df["Year-Quarter"] == quarter]
+# Filter by Year-Quarter
+if quarter_selection:
+    filtered_df = filtered_df[filtered_df["Year-Quarter"].isin(quarter_selection)]
 
-# 3.3) Year-Semester
-if semester != "Todos":
-    filtered_df = filtered_df[filtered_df["Year-Semester"] == semester]
+# Filter by Year-Semester
+if semester_selection:
+    filtered_df = filtered_df[filtered_df["Year-Semester"].isin(semester_selection)]
 
-# 3.4) Year
-if year != "Todos":
-    filtered_df = filtered_df[filtered_df["Year"] == year]
+# Filter by Year
+if year_selection:
+    filtered_df = filtered_df[filtered_df["Year"].isin(year_selection)]
 
-# 3.5) Unidade
-if unidade != "Todos":
-    filtered_df = filtered_df[filtered_df["UNIDADE:"] == unidade]
+# Filter by Unidade
+if unidade_selection:
+    filtered_df = filtered_df[filtered_df["UNIDADE:"].isin(unidade_selection)]
 
-# 3.6) Classificação
-if classificacao != "Todos":
-    filtered_df = filtered_df[filtered_df["CLASSIFICAÇÃO DO PROCESSO:"] == classificacao]
+# Filter by Classificação
+if classificacao_selection:
+    filtered_df = filtered_df[filtered_df["CLASSIFICAÇÃO DO PROCESSO:"].isin(classificacao_selection)]
 
-# 3.7) Número do Processo
-if numero_processo != "Todos":
-    filtered_df = filtered_df[filtered_df["NÚMERO DO PROCESSO:"] == numero_processo]
+# Filter by Número do Processo
+if numero_processo_selection:
+    filtered_df = filtered_df[filtered_df["NÚMERO DO PROCESSO:"].isin(numero_processo_selection)]
 
 # --------------------------------------------------------------------------
-# 4) NEW FILTER FOR "ANALISTA:"
+# 4) NEW FILTER FOR "ANALISTA:" (MULTI-SELECTION)
 # --------------------------------------------------------------------------
-# Before we do the filter, let's standardize the analyst names across the entire filtered_df.
-# (Or do it in df beforehand, if you prefer.)
-
 filtered_df["ANALISTA:"] = (
     filtered_df["ANALISTA:"]
-    .astype(str)            # just in case of non-string
+    .astype(str)
     .str.strip()
     .str.lower()
     .str.capitalize()
 )
 
-# Optionally, replace certain names as you did before:
-filtered_df["ANALISTA:"].replace(
-    {
-        "Renato": "Renato", 
-        "Ingrid": "Ingrid",
-        "Naiani": "Naiani", 
-        "Yasmine ": "Yasmine"
-    }, 
-    inplace=True
-)
-
-# Build the unique analyst list for the sidebar
 unique_analista = sorted(filtered_df["ANALISTA:"].unique())
-unique_analista.insert(0, "Todos")
+analista_selection = st.sidebar.multiselect("Analista:", unique_analista, default=[])
 
-analista = st.sidebar.selectbox("Analista:", unique_analista)
+if analista_selection:
+    filtered_df = filtered_df[filtered_df["ANALISTA:"].isin(analista_selection)]
 
-if analista != "Todos":
-    filtered_df = filtered_df[filtered_df["ANALISTA:"] == analista]
-
-
-
+# --------------------------------------------------------------------------
+# LAYOUT COLUMNS
+# --------------------------------------------------------------------------
 col9, col8 = st.columns(2)
 col1, col2 = st.columns(2)
 col3, col4 = st.columns(2)
 col10 = st.columns(1)[0] 
 col5, col7 = st.columns(2)
-col6 = st.columns(1)
 
+# --------------------------------------------------------------------------
+# CALCULATE METRICS
+# --------------------------------------------------------------------------
+# 1) ATRIBUÍDO = # of rows in the filtered data
+quantity_atribuido = len(filtered_df)
 
+# 2) FINALIZADO = how many of those have ANDAMENTO: == "FINALIZADO"
+quantity_finalizado = filtered_df["ANDAMENTO:"].eq("FINALIZADO").sum()
 
-
-
-
-
-
-
-# Calculate the Quantity of "ATRIBUÍDO" (total number of rows in filtered_df)
-quantity_atribuido = len(filtered_df["Year-Month"])
-quantity_residual = (df1["FORMULA 1"] == 2).sum()
-# Calculate the Quantity of "FINALIZADO"
-if quarter == "Todos" and month == "Todos":
-    # When both "Trimestre" and "Mês" are "Todos", quantity_finalizado is the count of values in "FORMULA 1" in df
-    quantity_finalizado = quantity_atribuido - quantity_residual
-else:
-    # When at least one of "Trimestre" or "Mês" is not "Todos"
-    if quarter == "Todos":
-        # When only "Trimestre" is "Todos", use the first value in "Year-Month" of filtered_df
-        first_year_month = filtered_df["Year-Month"].iloc[0]
-        quantity_finalizado = (df["Year-Month conclusion"] == first_year_month).sum()
-    else:
-        if month == "Todos":
-            # When only "Mês" is "Todos", use the first value in "Year-Quarter" of filtered_df
-            first_year_quarter = filtered_df["Year-Quarter"].iloc[0]
-            quantity_finalizado = (df["Year-Quarter conclusion"] == first_year_quarter).sum()
-        else:
-            # When both "Trimestre" and "Mês" are not "Todos", quantity_finalizado is 0
-            quantity_finalizado = 0
-
-# Calculate the Quantity of "RESIDUAL"
+# 3) RESIDUAL = ATRIBUÍDO - FINALIZADO
 quantity_residual = quantity_atribuido - quantity_finalizado
 
-
-
-
-
-
-
-# Create a dictionary to hold the values
-data = {
-    'Category': ['RESIDUAL', 'ATRIBUÍDO', 'FINALIZADO'],
-    'Quantity': [quantity_residual, quantity_atribuido, quantity_finalizado]
-}
-
-
-# You can also display the values as text in the sidebar
+# Display them in sidebar
 st.sidebar.markdown(f"**RESIDUAL:** {quantity_residual}")
 st.sidebar.markdown(f"**ATRIBUÍDO:** {quantity_atribuido}")
 st.sidebar.markdown(f"**FINALIZADO:** {quantity_finalizado}")
 
-# Standardize the names and capitalize the first letter
-filtered_df["ANALISTA:"] = filtered_df["ANALISTA:"].str.strip().str.lower().str.capitalize()
-filtered_df["ANALISTA:"].replace({"Renato": "Renato", "Ingrid": "Ingrid", "Naiani": "Naiani", "Yasmine ": "Yasmine"}, inplace=True)
-
+# --------------------------------------------------------------------------
+# BAR CHART: Processes per ANALISTA
+# --------------------------------------------------------------------------
 counts = filtered_df["ANALISTA:"].value_counts().reset_index()
 counts.columns = ["ANALISTA", "Quantidade"]
 
-fig_date = px.bar(counts, x="ANALISTA", y="Quantidade", title="Quantidade de processos atribuídos a cada analista")
+fig_date = px.bar(counts, x="ANALISTA", y="Quantidade", 
+                  title="Quantidade de processos atribuídos a cada analista")
 col1.plotly_chart(fig_date)
 
-# Assuming filtered_df is your DataFrame
+# --------------------------------------------------------------------------
+# BAR CHART: Average LEAD TIME por ANALISTA
+# --------------------------------------------------------------------------
 avg_lead_time = filtered_df.groupby("ANALISTA:")["LEAD TIME DO PROCESSO:"].mean().reset_index()
 avg_lead_time = avg_lead_time.sort_values(by="LEAD TIME DO PROCESSO:", ascending=False)
 
-fig_avg_lead_time = px.bar(avg_lead_time, x="ANALISTA:", y="LEAD TIME DO PROCESSO:", title="Lead Time Médio por Analista")
+fig_avg_lead_time = px.bar(avg_lead_time, x="ANALISTA:", y="LEAD TIME DO PROCESSO:",
+                           title="Lead Time Médio por Analista")
 col2.plotly_chart(fig_avg_lead_time)
 
-#   TERCEIRO GRÁFICO
-# Calculate the "Taxa de assertividade" for each month
-assertividade_data = filtered_df.groupby(["Year-Month"])["ANDAMENTO:"].apply(lambda x: (x == "FINALIZADO").sum() / x.count() * 100).reset_index()
+# --------------------------------------------------------------------------
+# LINE CHART: Taxa de assertividade dos processos recebidos (%)
+# --------------------------------------------------------------------------
+# For each Year-Month, let's define assertividade as:
+# (# FINALIZADO / total do mês) * 100
+# If you have no data for that month, you won't see a point.
+
+assertividade_data = (
+    filtered_df
+    .groupby("Year-Month")["ANDAMENTO:"]
+    .apply(lambda x: (x == "FINALIZADO").sum() / x.count() * 100 if x.count() > 0 else 0)
+    .reset_index()
+)
 assertividade_data.columns = ["Year-Month", "Taxa de assertividade"]
 
-# Create a line chart
-fig_assertividade = px.line(assertividade_data, x="Year-Month", y="Taxa de assertividade", title="Taxa de assertividade dos processos recebidos (%)")
+fig_assertividade = px.line(assertividade_data, 
+                            x="Year-Month", 
+                            y="Taxa de assertividade", 
+                            title="Taxa de assertividade dos processos recebidos (%)")
 
-# Add a horizontal line at 90%
-fig_assertividade.add_hline(y=90, line_dash="dash", line_color="green", annotation_text="90%", annotation_position="bottom right")
+fig_assertividade.add_hline(y=90, line_dash="dash", line_color="green", 
+                            annotation_text="90%", 
+                            annotation_position="bottom right")
+fig_assertividade.add_annotation(text="META", xref="paper", yref="y", x=0.99, y=91, showarrow=False)
 
-# Add the "target" annotation
-fig_assertividade.add_annotation(text="META", xref="paper", yref="y", x=0.999, y=91, showarrow=False)
-
-# Show the line chart
 col4.plotly_chart(fig_assertividade)
 
-# QUARTO GRÁFICOOO -------------------
+# --------------------------------------------------------------------------
+# BAR CHART: Quantidade de Inconformidades por Unidade
+# --------------------------------------------------------------------------
+# Filter out rows where "INCONFORMIDADE 1:" is "-"
+desired_unidades_list = ["CRER", "HECAD", "HUGOL", "HDS", "AGIR", "TEIA", "CED"]
+inconf_filtered = filtered_df[
+    (filtered_df["UNIDADE:"].isin(desired_unidades_list)) &
+    (filtered_df["INCONFORMIDADE 1:"] != "-")
+]
 
-# Define the list of "UNIDADE:" values you want to include
-desired_unidades = ["CRER", "HECAD", "HUGOL", "HDS", "AGIR", "TEIA", "CED"]
-
-# Filter the DataFrame to include only the desired "UNIDADE:" values and where "INCONFORMIDADE 1:" is not equal to "-"
-filtered_df = filtered_df[(filtered_df["UNIDADE:"].isin(desired_unidades)) & (filtered_df["INCONFORMIDADE 1:"] != "-")]
-
-# Group the data by "UNIDADE:" and "INCONFORMIDADE 1:" and count the occurrences
-grouped_data = filtered_df.groupby(["UNIDADE:", "INCONFORMIDADE 1:"]).size().reset_index(name="Quantidade")
-
-# Sort the grouped_data DataFrame in descending order based on the "Quantidade" column
+grouped_data = inconf_filtered.groupby(["UNIDADE:", "INCONFORMIDADE 1:"]).size().reset_index(name="Quantidade")
 grouped_data = grouped_data.sort_values(by="Quantidade", ascending=False)
 
-# Create a bar chart
-fig_inconformidade = px.bar(grouped_data, x="UNIDADE:", y="Quantidade", color="INCONFORMIDADE 1:", title="Quantidade de Inconformidades por Unidade")
-
-# Show the bar chart
+fig_inconformidade = px.bar(grouped_data, x="UNIDADE:", y="Quantidade", color="INCONFORMIDADE 1:",
+                            title="Quantidade de Inconformidades por Unidade")
 col5.plotly_chart(fig_inconformidade)
 
-#QUINTO GRÁFICO --------------------------------------
-
-# Filter out rows with "-" values in "INCONFORMIDADE 1:"
+# --------------------------------------------------------------------------
+# LINE CHART: Comportamento das Inconformidades por Mês
+# --------------------------------------------------------------------------
 inconformidade_data = filtered_df[filtered_df["INCONFORMIDADE 1:"] != "-"]
+inconformidade_grouped = (
+    inconformidade_data
+    .groupby(["Year-Month", "INCONFORMIDADE 1:"])
+    .size()
+    .reset_index(name="Quantidade")
+)
 
-# Group the data by "Year-Month" and "INCONFORMIDADE 1:" and count the occurrences
-inconformidade_grouped = inconformidade_data.groupby(["Year-Month", "INCONFORMIDADE 1:"]).size().reset_index(name="Quantidade")
-
-# Create a line chart with multiple lines, one for each value in "INCONFORMIDADE 1:"
-fig_inconformidade_lines = px.line(inconformidade_grouped, x="Year-Month", y="Quantidade", color="INCONFORMIDADE 1:", title="Comportamento das Inconformidades por Mês")
-
-# Show the line chart
+fig_inconformidade_lines = px.line(inconformidade_grouped, 
+                                   x="Year-Month", 
+                                   y="Quantidade", 
+                                   color="INCONFORMIDADE 1:", 
+                                   title="Comportamento das Inconformidades por Mês")
 col7.plotly_chart(fig_inconformidade_lines)
 
-#SEXTO GRÁFICO ---------------------------------
-
-# Filter the DataFrame to include only rows with "FINALIZADO" or "DEVOLVIDO A UNIDADE" in "ANDAMENTO:"
+# --------------------------------------------------------------------------
+# DONUT CHART: Porcentagem de Produtividade da Equipe
+# (processos que estão FINALIZADO ou DEVOLVIDO A UNIDADE)
+# --------------------------------------------------------------------------
 completed_jobs = filtered_df[filtered_df["ANDAMENTO:"].isin(["FINALIZADO", "DEVOLVIDO A UNIDADE"])]
-
-# Group the data by "ANALISTA:" and count the occurrences
 analista_counts = completed_jobs["ANALISTA:"].value_counts().reset_index()
 analista_counts.columns = ["ANALISTA:", "Quantidade"]
 
-# Create a donut chart
 fig_donut = px.pie(
     analista_counts,
     names="ANALISTA:",
     values="Quantidade",
     title="Porcentagem de Produtividade da Equipe",
-    hole=0.4  # Adjust the hole size (0.4 represents 40% of the inner hole)
+    hole=0.4
 )
-
-# Show the donut chart
 col3.plotly_chart(fig_donut)
 
-
-
-
-
-# #ULTIMO GRAFICO
-
-# data = {
-#     "Year-Month": ["2022-01", "2022-02", "2022-03", "2022-04", "2022-05", "2022-06", "2022-07", "2022-08", "2022-09", "2022-10", "2022-11", "2022-12", "2023-01", "2023-02", "2023-03", "2023-04", "2023-05", "2023-06", "2023-07", "2023-08", "2023-09", "2023-10", "2023-11", "2023-12", "2024-01", "2024-02"],
-#     "Valor Residual": [20, 5, -1, -5, 11, 4, -6, -3, 7, -11, 0, -2, -13, -5, 2, -1, 4, -4, 6, 2, 0, -8, -1, -3, 0, 1]
-# }
-
-# df_residual_values = pd.DataFrame(data)
-
-
-
-# #----------------------------------------------------------------------
-
-
-# # Create a line chart for the residual values over time
-# fig_residual = px.line(df_residual_values, x="Year-Month", y="Valor Residual", title="Valor Residual ao longo do tempo")
-
-# # Customize the line chart if needed
-# fig_residual.update_traces(mode="lines+markers")
-
-# fig_residual.add_hline(y=0, line_dash="dash", line_color="green")
-
-# # Update the layout to set the width
-# fig_residual.update_layout(width=1125)  # You can adjust the width as needed
-
-# # Show the line chart in Streamlit
-# st.plotly_chart(fig_residual)
-
-
 # --------------------------------------------------------------------------
-# TREEMAP: CLASSIFICAÇÃO DO PROCESSO POR ANALISTA (INVERTED)
+# TREEMAP: CLASSIFICAÇÃO DO PROCESSO -> ANALISTA
 # --------------------------------------------------------------------------
-
-# Group data by "CLASSIFICAÇÃO DO PROCESSO:" and "ANALISTA:" and count
 classification_by_analyst = (
-    filtered_df.groupby(["CLASSIFICAÇÃO DO PROCESSO:", "ANALISTA:"])
+    filtered_df
+    .groupby(["CLASSIFICAÇÃO DO PROCESSO:", "ANALISTA:"])
     .size()
     .reset_index(name="Quantidade")
 )
 
-# Create a treemap
 fig_treemap_inverted = px.treemap(
     classification_by_analyst,
-    path=["CLASSIFICAÇÃO DO PROCESSO:", "ANALISTA:"],  # Inverted order
+    path=["CLASSIFICAÇÃO DO PROCESSO:", "ANALISTA:"],
     values="Quantidade",
     title="Classificação do Processo por Analista",
     color="Quantidade",
-    color_continuous_scale="Blues",  # You can change color scale if desired
+    color_continuous_scale="Blues"
 )
-
-# Display the treemap in a Streamlit column or directly with st.plotly_chart
 col10.plotly_chart(fig_treemap_inverted)
 
-
-
-
-
-
-
+# --------------------------------------------------------------------------
+# LEAD TIME MÉDIO (MÉTRICA) e LEAD TIME AO LONGO DO TEMPO
+# --------------------------------------------------------------------------
 avg_lead_time_value = filtered_df["LEAD TIME DO PROCESSO:"].mean()
+avg_lead_time_str = f"{avg_lead_time_value:.3f}"  # 3 decimal places
 
-# Format the average lead time value to display only three decimals
-avg_lead_time_value = "{:.3f}".format(avg_lead_time_value)
-
-
-# Display the average lead time in a metric display
 col9.subheader('Lead Time médio ⏳')
-col9.metric(label='Lead Time (dias)', value=avg_lead_time_value, delta=None)
-
-# Optionally, you can add a description or any additional information
+col9.metric(label='Lead Time (dias)', value=avg_lead_time_str)
 col9.write("Esse valor representa o lead time do período selecionado.")
 
-
-
-# Group the data by "Year-Month" and calculate the average lead time
+# Evolução do lead time ao longo do tempo
 avg_lead_time_over_time = filtered_df.groupby("Year-Month")["LEAD TIME DO PROCESSO:"].mean().reset_index()
-
-# Create a line chart for the average lead time over time
-fig_avg_lead_time_over_time = px.line(avg_lead_time_over_time, x="Year-Month", y="LEAD TIME DO PROCESSO:", title="Lead Time Médio ao longo do tempo")
-
-# Customize the line chart if needed
+fig_avg_lead_time_over_time = px.line(
+    avg_lead_time_over_time,
+    x="Year-Month",
+    y="LEAD TIME DO PROCESSO:",
+    title="Lead Time Médio ao longo do tempo"
+)
 fig_avg_lead_time_over_time.update_traces(mode="lines+markers")
 
-# Update the layout to set the width
 fig_avg_lead_time_over_time.update_layout(width=600)
-
-
-# Show the line chart in Streamlit
 col8.plotly_chart(fig_avg_lead_time_over_time)
 
-
-
-# Display the filtered DataFrame
-st.write("Dados Selecionados:")
+# --------------------------------------------------------------------------
+# DISPLAY THE FILTERED DATAFRAME
+# --------------------------------------------------------------------------
+st.write("### Dados Selecionados:")
 st.dataframe(filtered_df)
-
-
-
-
-#atribuídos x realizados x residual
-#meta de conformidade que é 90% e qual a % atual
-#processos devolvidos e quais as suas inconformidades
-#lead time por analista
-#meta prevista de 100% e meta realizada
-#quantidade de recebidos, de realziados e de inconformidades
-#% de produtividade da equipe
-#inconformidades por unidade
