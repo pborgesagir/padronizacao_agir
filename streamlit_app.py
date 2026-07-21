@@ -46,19 +46,10 @@ def safe_chart(container, render_fn, empty_message="Sem dados para este gráfico
         container.warning(f"{empty_message}\n\nDetalhe técnico: {e}")
 
 
-TEIA_LABEL = "TEIA - Todas as Unidades"
-
-
 def unidade_matches(value: str, desired: str) -> bool:
-    """Compares a raw UNIDADE: value from the sheet against a desired filter
-    option. Case/accent-insensitive on exact names; for the generic TEIA
-    option it matches any TEIA variant, including legacy rows that were
-    just saved as plain "TEIA" with no specific unit."""
-    v = str(value).strip().casefold()
-    d = str(desired).strip().casefold()
-    if d == TEIA_LABEL.casefold():
-        return v == "teia" or v.startswith("teia -") or v.startswith("teia-") or v.startswith("teia ")
-    return v == d
+    """Case/accent-insensitive exact match between a raw UNIDADE: value from
+    the sheet and a desired filter option."""
+    return str(value).strip().casefold() == str(desired).strip().casefold()
 
 
 REQUIRED_COLUMNS = [
@@ -174,7 +165,11 @@ numero_processo_selection = st.sidebar.multiselect("Número do Processo:", uniqu
 desired_unidades = [
     "AGIR", "CED", "CRER", "HDS", "HECAD", "HMSA - Santa de Parnaíba", "HRJ",
     "HRD II", "Hospital Regional de Cáceres", "HUGOL", "CHZS", "PLC GOIÁS",
-    TEIA_LABEL, "UPA de Suá", "UPA de São Pedro",
+    "TEIA", "TEIA - Anápolis", "TEIA - Aparecida de Goiânia",
+    "TEIA - CAIC Dr. Afrânio Soares", "TEIA - CAIC Dr. Gilson Moreira",
+    "TEIA - CAIC Dr. José Contente", "TEIA MANAUS", "TEIA - Pinhal",
+    "TEIA - Rio Verde", "TEIA - Senador Canedo", "TEIA - Setor Universitário",
+    "UPA de Suá", "UPA de São Pedro",
 ]
 raw_unidade_values = df["UNIDADE:"].unique()
 available_unidades = [
