@@ -291,6 +291,42 @@ with tab_overview:
 
     safe_chart(st, render_treemap)
 
+    # ---- NOVO GRÁFICO: barras por CLASSIFICAÇÃO DO PROCESSO ----
+    def render_classificacao_bar(container):
+        """Bar chart grouping processes by classification (count per classification)."""
+        class_counts = (
+            filtered_df["CLASSIFICAÇÃO DO PROCESSO:"]
+            .value_counts()
+            .reset_index()
+        )
+        class_counts.columns = ["Classificação", "Quantidade"]
+
+        fig = px.bar(
+            class_counts,
+            x="Quantidade",
+            y="Classificação",
+            orientation="h",
+            title="Distribuição de Processos por Classificação",
+            color="Quantidade",
+            color_continuous_scale="Viridis",
+            text_auto=True,
+            template="plotly_white",
+        )
+        # Order bars so the largest count appears at the top
+        fig.update_yaxes(categoryorder="total ascending")
+        fig.update_traces(
+            marker_line_color="rgba(0,0,0,0)",  # clean bars without border
+            textposition="outside",
+        )
+        fig.update_layout(
+            coloraxis_showscale=False,
+            margin=dict(l=20, r=20, t=40, b=20),
+        )
+        container.plotly_chart(fig, use_container_width=True)
+
+    safe_chart(st, render_classificacao_bar)
+    # -----------------------------------------------------------------
+
 # ---------------------- TAB: ANALISTAS --------------------------------------
 with tab_analistas:
     c1, c2 = st.columns(2)
