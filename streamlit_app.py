@@ -46,6 +46,21 @@ def safe_chart(container, render_fn, empty_message="Sem dados para este gráfico
         container.warning(f"{empty_message}\n\nDetalhe técnico: {e}")
 
 
+TEIA_LABEL = "TEIA - Todas as Unidades"
+
+
+def unidade_matches(value: str, desired: str) -> bool:
+    """Compares a raw UNIDADE: value from the sheet against a desired filter
+    option. Case/accent-insensitive on exact names; for the generic TEIA
+    option it matches any TEIA variant, including legacy rows that were
+    just saved as plain "TEIA" with no specific unit."""
+    v = str(value).strip().casefold()
+    d = str(desired).strip().casefold()
+    if d == TEIA_LABEL.casefold():
+        return v == "teia" or v.startswith("teia -") or v.startswith("teia-") or v.startswith("teia ")
+    return v == d
+
+
 REQUIRED_COLUMNS = [
     "DATA DE ATRIBUIÇÃO:", "DATA DE CONCLUSÃO:", "ANDAMENTO:", "ANALISTA:",
     "LEAD TIME DO PROCESSO:", "UNIDADE:", "CLASSIFICAÇÃO DO PROCESSO:",
@@ -156,8 +171,16 @@ classificacao_selection = st.sidebar.multiselect("Classificação do Processo:",
 unique_numero_processo = safe_sorted_unique(df["NÚMERO DO PROCESSO:"])
 numero_processo_selection = st.sidebar.multiselect("Número do Processo:", unique_numero_processo, default=[])
 
-desired_unidades = ["CRER", "HECAD", "HUGOL", "HDS", "AGIR", "TEIA", "CED"]
-available_unidades = [u for u in desired_unidades if u in df["UNIDADE:"].unique()]
+desired_unidades = [
+    "AGIR", "CED", "CRER", "HDS", "HECAD", "HMSA - Santa de Parnaíba", "HRJ",
+    "HRD II", "Hospital Regional de Cáceres", "HUGOL", "CHZS", "PLC GOIÁS",
+    TEIA_LABEL, "UPA de Suá", "UPA de São Pedro",
+]
+raw_unidade_values = df["UNIDADE:"].unique()
+available_unidades = [
+    u for u in desired_unidades
+    if any(unidade_matches(val, u) for val in raw_unidade_values)
+]
 unidade_selection = st.sidebar.multiselect("Unidade:", available_unidades, default=[])
 
 unique_analista = safe_sorted_unique(df["ANALISTA:"])
@@ -178,7 +201,10 @@ if semester_selection:
 if year_selection:
     filtered_df = filtered_df[filtered_df["Year"].astype(str).isin([str(y) for y in year_selection])]
 if unidade_selection:
-    filtered_df = filtered_df[filtered_df["UNIDADE:"].isin(unidade_selection)]
+    mask_unidade = filtered_df["UNIDADE:"].apply(
+        lambda v: any(unidade_matches(v, sel) for sel in unidade_selection)
+    )
+    filtered_df = filtered_df[mask_unidade]
 if classificacao_selection:
     filtered_df = filtered_df[filtered_df["CLASSIFICAÇÃO DO PROCESSO:"].isin(classificacao_selection)]
 if numero_processo_selection:
@@ -311,9 +337,11 @@ with tab_qualidade:
     c1, c2 = st.columns(2)
 
     def render_inconformidade_bar(container):
+        known_unidade_mask = filtered_df["UNIDADE:"].apply(
+            lambda v: any(unidade_matches(v, d) for d in desired_unidades)
+        )
         inconf_filtered = filtered_df[
-            (filtered_df["UNIDADE:"].isin(desired_unidades)) &
-            (filtered_df["INCONFORMIDADE 1:"] != "-")
+            known_unidade_mask & (filtered_df["INCONFORMIDADE 1:"] != "-")
         ]
         if inconf_filtered.empty:
             container.info("Nenhuma inconformidade registrada para os filtros atuais.")
